@@ -8,7 +8,8 @@
 
 # Modified Author: Xudong Lv
 # based on github.com/cattaneod/CMRNet/blob/master/evaluate_iterative_single_CALIB.py
-
+# Modified Author: Hao Wang
+# based on https://github.com/LvXudong-HIT/LCCNet/evaluate_calib.py
 import csv
 import random
 import open3d as o3
@@ -58,7 +59,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 # noinspection PyUnusedLocal
 @ex.config
 def config():
-    data_folder = '/home/alex/data/valkitti/'
+    data_folder = '/media/alex/4/dataobject/data/'
     test_sequence = '00'
     use_prev_output = False
     max_t = 1.5
@@ -74,17 +75,18 @@ def config():
     # Set to True only if you use two network, the first for rotation and the second for translation
     rot_transl_separated = False
     random_initial_pose = False
-    save_log = True
+    save_log = False
     dropout = 0.0
     max_depth = 80.
     iterative_method = 'multi_range' # ['multi_range', 'single_range', 'single']
-    output = 'output'
+    output = '/media/alex/4/output'
     save_image = False
     outlier_filter = True
     outlier_filter_th = 10
     out_fig_lg = 'EN' # [EN, CN]
-weights = ['/home/alex/Downloads/checkpoint_r20.00_t1.50_e2_2.149.tar',]
-#weights = ['/home/alex/Downloads/checkpoint_r20.00_t1.50_e96_0.226.tar',]
+#weights = ['/home/alex/Downloads/checkpoint_r20.00_t1.50_e2_2.149.tar',]
+weights = ['/media/alex/4/models/origin/kitti_iter1.tar','/media/alex/4/models/origin/kitti_iter2.tar','/media/alex/4/models/origin/kitti_iter3.tar','/media/alex/4/models/origin/kitti_iter4.tar','/media/alex/4/models/origin/kitti_iter5.tar',]
+#weights = ['/home/alex/Downloads/checkpoint_r20.00_t1.50_e2_2.149.tar','/home/alex/Downloads/checkpoint_r10.00_t1.00_e9_1.116.tar','/home/alex/Downloads/checkpoint_r5.00_t0.50_e4_0.398.tar','/home/alex/MRCNet-main(复件)/fixed/val_seq_00/models/checkpoint_r2.00_t0.20_e24_1.912.tar',]
 #weights = ['/media/alex/4/models/final/20.0-1.5.tar','/media/alex/4/models/final/10-1.0.tar','/media/alex/4/models/final/5-0.5.tar','/media/alex/4/models/final/2-0.2.tar',]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -183,7 +185,7 @@ def main(_config, seed):
         else:
             raise TypeError("Network unknown")
         if i<6:
-            model = MRCNet(input_size, use_feat_from=feat, md=md,
+            model = LCCNet(input_size, use_feat_from=feat, md=md,
                              use_reflectance=_config['use_reflectance'], dropout=_config['dropout'])
             checkpoint = torch.load(weights[i])
             saved_state_dict = checkpoint['state_dict']
@@ -193,7 +195,7 @@ def main(_config, seed):
             models.append(model)
 
     if _config['save_log']:
-        log_file = f'result.csv'
+        log_file = f'/media/alex/4/2.csv'
         log_file = open(log_file, 'w')
         log_file = csv.writer(log_file)
         header = ['frame']
@@ -517,59 +519,40 @@ def main(_config, seed):
     for i in range(len(weights) + 1):
         errors_r[i] = torch.tensor(errors_r[i]).abs() * (180.0 / 3.141592)
         errors_t[i] = torch.tensor(errors_t[i]).abs() * 100
-        rrr=0
-        ttt=0
-        xxx=0
-        yyy=0
-        zzz=0
-        ppp=0
-        rawr=0
-        tawy=0
         for k in range(len(errors_rpy[i])):
             # errors_rpy[i][k] = torch.tensor(errors_rpy[i][k])
             # errors_t2[i][k] = torch.tensor(errors_t2[i][k]) * 100
             errors_rpy[i][k] = errors_rpy[i][k].clone().detach().abs()
             errors_t2[i][k] = errors_t2[i][k].clone().detach().abs() * 100
-            xxx=xxx+errors_t2[i][k][0]/len(errors_rpy[i])
-            yyy=yyy+errors_t2[i][k][1]/len(errors_rpy[i])
-            zzz=zzz+errors_t2[i][k][2]/len(errors_rpy[i])
-            ppp=ppp+errors_rpy[i][k][0]/len(errors_rpy[i])
-            rawr=rawr+errors_rpy[i][k][1]/len(errors_rpy[i])
-            tawy=tawy+errors_rpy[i][k][2]/len(errors_rpy[i])
-        print(xxx)
-        print(yyy)
-        print(zzz)
-        print(ppp)
-        print(rawr)
-        print(tawy)
         print(f"Iteration {i}: \tMean Translation Error: {errors_t[i].mean():.4f} cm "
               f"     Mean Rotation Error: {errors_r[i].mean():.4f} °")
         print(f"Iteration {i}: \tMedian Translation Error: {errors_t[i].median():.4f} cm "
               f"     Median Rotation Error: {errors_r[i].median():.4f} °")
         print(f"Iteration {i}: \tStd. Translation Error: {errors_t[i].std():.4f} cm "
               f"     Std. Rotation Error: {errors_r[i].std():.4f} °\n")
-
+          
         # translation xyz
-        print(f"Iteration {i}: \tMean Translation X Error: {errors_t2[i][-1][0].mean():.4f} cm "
-              f"     Median Translation X Error: {errors_t2[i][0].median():.4f} cm "
-              f"     Std. Translation X Error: {errors_t2[i][0].std():.4f} cm ")
-        print(f"Iteration {i}: \tMean Translation Y Error: {errors_t2[i][-1][1].mean():.4f} cm "
-              f"     Median Translation Y Error: {errors_t2[i][1].median():.4f} cm "
-              f"     Std. Translation Y Error: {errors_t2[i][1].std():.4f} cm ")
-        print(f"Iteration {i}: \tMean Translation Z Error: {errors_t2[i][-1][2].mean():.4f} cm "
-              f"     Median Translation Z Error: {errors_t2[i][2].median():.4f} cm "
-              f"     Std. Translation Z Error: {errors_t2[i][2].std():.4f} cm \n")
-
+        errors_t2[i]=torch.stack(errors_t2[i])
+        print(f"Iteration {i}: \tMean Translation X Error: {errors_t2[i][:,0].mean():.4f} cm "
+              f"     Median Translation X Error: {errors_t2[i][:,0].median():.4f} cm "
+              f"     Std. Translation X Error: {errors_t2[i][:,0].std():.4f} cm ")
+        print(f"Iteration {i}: \tMean Translation Y Error: {errors_t2[i][:,1].mean():.4f} cm "
+              f"     Median Translation Y Error: {errors_t2[i][:,1].median():.4f} cm "
+              f"     Std. Translation Y Error: {errors_t2[i][:,1].std():.4f} cm ")
+        print(f"Iteration {i}: \tMean Translation Z Error: {errors_t2[i][:,2].mean():.4f} cm "
+              f"     Median Translation Z Error: {errors_t2[i][:,2].median():.4f} cm "
+              f"     Std. Translation Z Error: {errors_t2[i][:,2].std():.4f} cm \n")
+        errors_rpy[i]=torch.stack(errors_rpy[i])
         # rotation rpy
-        print(f"Iteration {i}: \tMean Rotation Roll Error: {errors_rpy[i][-1][0].mean(): .4f} °"
-              f"     Median Rotation Roll Error: {errors_rpy[i][0].median():.4f} °"
-              f"     Std. Rotation Roll Error: {errors_rpy[i][0].std():.4f} °")
-        print(f"Iteration {i}: \tMean Rotation Pitch Error: {errors_rpy[i][-1][1].mean(): .4f} °"
-              f"     Median Rotation Pitch Error: {errors_rpy[i][1].median():.4f} °"
-              f"     Std. Rotation Pitch Error: {errors_rpy[i][1].std():.4f} °")
-        print(f"Iteration {i}: \tMean Rotation Yaw Error: {errors_rpy[i][-1][2].mean(): .4f} °"
-              f"     Median Rotation Yaw Error: {errors_rpy[i][2].median():.4f} °"
-              f"     Std. Rotation Yaw Error: {errors_rpy[i][2].std():.4f} °\n")
+        print(f"Iteration {i}: \tMean Rotation Roll Error: {errors_rpy[i][:,0].mean(): .4f} °"
+              f"     Median Rotation Roll Error: {errors_rpy[i][:,0].median():.4f} °"
+              f"     Std. Rotation Roll Error: {errors_rpy[i][:,0].std():.4f} °")
+        print(f"Iteration {i}: \tMean Rotation Pitch Error: {errors_rpy[i][:,1].mean(): .4f} °"
+              f"     Median Rotation Pitch Error: {errors_rpy[i][:,1].median():.4f} °"
+              f"     Std. Rotation Pitch Error: {errors_rpy[i][:,1].std():.4f} °")
+        print(f"Iteration {i}: \tMean Rotation Yaw Error: {errors_rpy[i][:,2].mean(): .4f} °"
+              f"     Median Rotation Yaw Error: {errors_rpy[i][:,2].median():.4f} °"
+              f"     Std. Rotation Yaw Error: {errors_rpy[i][:,2].std():.4f} °\n")
 
 
         with open(os.path.join(_config['output'], 'results.txt'),
@@ -607,9 +590,6 @@ def main(_config, seed):
                     f"     Median Rotation Yaw Error: {errors_rpy[i][2].median():.4f} °"
                     f"     Std. Rotation Yaw Error: {errors_rpy[i][2].std():.4f} °\n\n\n")
 
-    for i in range(len(errors_t2)):
-        errors_t2[i] = torch.stack(errors_t2[i]).abs() / 100
-        errors_rpy[i] = torch.stack(errors_rpy[i]).abs()
 
     '''# mis_calib_input
     t_x = mis_calib_input[:, 0]
@@ -664,8 +644,8 @@ def main(_config, seed):
         plt.ylabel('绝对误差/米', font_CN)
         plt.legend(loc='best', prop=font_CN)
 
-    plt.xticks(fontproperties='Times New Roman', size=plt_size)
-    plt.yticks(fontproperties='Times New Roman', size=plt_size)
+    plt.xticks( size=plt_size)
+    plt.yticks(size=plt_size)
 
     plt.savefig(os.path.join(results_path, 'xyz_plot.png'))
     plt.close('all')
@@ -685,8 +665,8 @@ def main(_config, seed):
     elif _config['out_fig_lg'] == 'CN':
         plt.xlabel('绝对平移误差/米', font_CN)
         plt.ylabel('实验序列数目/个', font_CN)
-    plt.xticks(fontproperties='Times New Roman', size=plt_size)
-    plt.yticks(fontproperties='Times New Roman', size=plt_size)
+    plt.xticks( size=plt_size)
+    plt.yticks( size=plt_size)
 
     plt.savefig(os.path.join(results_path, 'translation_error_distribution.png'))
     plt.close('all')
@@ -733,8 +713,8 @@ def main(_config, seed):
         plt.ylabel('绝对误差/度', font_CN)
         plt.legend(loc='best', prop=font_CN)
 
-    plt.xticks(fontproperties='Times New Roman', size=plt_size)
-    plt.yticks(fontproperties='Times New Roman', size=plt_size)
+    plt.xticks(size=plt_size)
+    plt.yticks(size=plt_size)
     plt.savefig(os.path.join(results_path, 'rpy_plot.png'))
     plt.close('all')
 
@@ -742,11 +722,8 @@ def main(_config, seed):
     errors_r = np.sort(errors_r, axis=0)[:-10] # 去掉一些异常值
     # np.savetxt('rot_error.txt', arr_, fmt='%0.8f')
     # print('max rotation_error: {}'.format(max(errors_r)))
-    # plt.title('Calibration Rotation Error Distribution')
-    plt.hist(errors_r, bins=50)
-    #plt.xlim([0, 1.5])  # x轴边界
-    #plt.xticks([0.0, 0.3, 0.6, 0.9, 1.2, 1.5])  # 设置x刻度
-    # ax = plt.gca()
+    plt.title('Calibration Rotation Error Distribution')
+    plt.hist(errors_r, bins=100,range=(0,0.5))
 
     if _config['out_fig_lg'] == 'EN':
         plt.xlabel('Absolute Rotation Error (°)', font_EN)
@@ -754,8 +731,6 @@ def main(_config, seed):
     elif _config['out_fig_lg'] == 'CN':
         plt.xlabel('绝对旋转误差/度', font_CN)
         plt.ylabel('实验序列数目/个', font_CN)
-    plt.xticks(fontproperties='Times New Roman', size=plt_size)
-    plt.yticks(fontproperties='Times New Roman', size=plt_size)
     plt.savefig(os.path.join(results_path, 'rotation_error_distribution.png'))
     plt.close('all')
 

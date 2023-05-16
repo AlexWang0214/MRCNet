@@ -7,7 +7,7 @@
 # -------------------------------------------------------------------
 
 # Modified Author: Hao Wang
-# based on https://github.com/LvXudong-HIT/LCCNet/losses.pyy
+# based on https://github.com/LvXudong-HIT/LCCNet/losses.py
 
 import torch
 from torch import nn as nn

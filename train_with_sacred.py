@@ -120,7 +120,7 @@ def train(model, optimizer, rgb_img, refl_img, target_transl, target_rot, loss_f
     model.train()
 
 
-    '''for i in range(len(point_clouds)):
+    for i in range(len(point_clouds)):
         X1 = cam_calib[i].numpy()
 
         X1=np.insert(X1, 3, np.array([0, 0, 0]), axis=0)
@@ -144,7 +144,7 @@ def train(model, optimizer, rgb_img, refl_img, target_transl, target_rot, loss_f
         depth_img=torch.mm(X1.inverse(),depth_img)
         depth_img=torch.mm(RTcuda.inverse(),depth_img)
 
-        point_clouds[i]=depth_img'''
+        point_clouds[i]=depth_img
     optimizer.zero_grad()
 
     # Run model
@@ -164,7 +164,7 @@ def train(model, optimizer, rgb_img, refl_img, target_transl, target_rot, loss_f
 @ex.capture
 def val(model, rgb_img, refl_img, target_transl, target_rot, loss_fn, point_clouds, loss,rgb,cam_calib):
     model.eval()
-    '''for i in range(len(point_clouds)):
+    for i in range(len(point_clouds)):
         X1 = cam_calib[i].numpy()
 
         X1=np.insert(X1, 3, np.array([0, 0, 0]), axis=0)
@@ -187,7 +187,7 @@ def val(model, rgb_img, refl_img, target_transl, target_rot, loss_fn, point_clou
         depth_img=torch.mm(X1.inverse(),depth_img)
         depth_img=torch.mm(RTcuda.inverse(),depth_img)
 
-        point_clouds[i]=depth_img'''
+        point_clouds[i]=depth_img
     # Run model
     with torch.no_grad():
         transl_err, rot_err = model(rgb_img, refl_img)
