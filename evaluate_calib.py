@@ -84,10 +84,7 @@ def config():
     outlier_filter = True
     outlier_filter_th = 10
     out_fig_lg = 'EN' # [EN, CN]
-#weights = ['/home/alex/Downloads/checkpoint_r20.00_t1.50_e2_2.149.tar',]
-weights = ['/media/alex/4/models/origin/kitti_iter1.tar','/media/alex/4/models/origin/kitti_iter2.tar','/media/alex/4/models/origin/kitti_iter3.tar','/media/alex/4/models/origin/kitti_iter4.tar','/media/alex/4/models/origin/kitti_iter5.tar',]
-#weights = ['/home/alex/Downloads/checkpoint_r20.00_t1.50_e2_2.149.tar','/home/alex/Downloads/checkpoint_r10.00_t1.00_e9_1.116.tar','/home/alex/Downloads/checkpoint_r5.00_t0.50_e4_0.398.tar','/home/alex/MRCNet-main(复件)/fixed/val_seq_00/models/checkpoint_r2.00_t0.20_e24_1.912.tar',]
-#weights = ['/media/alex/4/models/final/20.0-1.5.tar','/media/alex/4/models/final/10-1.0.tar','/media/alex/4/models/final/5-0.5.tar','/media/alex/4/models/final/2-0.2.tar',]
+weights = ['/media/alex/4/models/final/20.0-1.5.tar','/media/alex/4/models/final/10-1.0.tar','/media/alex/4/models/final/5-0.5.tar','/media/alex/4/models/final/2-0.2.tar',]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 EPOCH = 1
@@ -185,7 +182,7 @@ def main(_config, seed):
         else:
             raise TypeError("Network unknown")
         if i<6:
-            model = LCCNet(input_size, use_feat_from=feat, md=md,
+            model = MRCNet(input_size, use_feat_from=feat, md=md,
                              use_reflectance=_config['use_reflectance'], dropout=_config['dropout'])
             checkpoint = torch.load(weights[i])
             saved_state_dict = checkpoint['state_dict']

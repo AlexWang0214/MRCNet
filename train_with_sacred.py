@@ -5,7 +5,8 @@
 # Attribution-NonCommercial-ShareAlike 4.0 International License.
 # http://creativecommons.org/licenses/by-nc-sa/4.0/
 # -------------------------------------------------------------------
-
+# Modified Author: Xudong Lv
+# based on github.com/cattaneod/CMRNet/blob/master/main_visibility_CALIB.py
 # Modified Author: Hao Wang
 # based on https://github.com/LvXudong-HIT/LCCNet/train_with_sacred.py
 

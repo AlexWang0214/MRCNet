@@ -8,7 +8,8 @@
 
 # Modified Author: Xudong Lv
 # based on github.com/cattaneod/CMRNet/blob/master/DatasetVisibilityKitti.py
-
+# Modified Author: Hao Wang
+# based on https://github.com/LvXudong-HIT/LCCNet/DatasetLidarCamera.py
 import csv
 import os
 from math import radians
@@ -50,21 +51,12 @@ class DatasetLidarCameraKittiOdometry(Dataset):
         self.suf = suf
 
         self.all_files = []
-        self.sequence_list = ['00' ,'02', '03', '04','05', '06']
-        # self.model = CameraModel() ,'02', '03', '04','05', '06''13', '14', '15', '08', '09','10','11', '12', '16', '17',, '07' '18', '19', '20','21',  
-        # self.model.focal_length = [7.18856e+02, 7.18856e+02]
-        # self.model.principal_point = [6.071928e+02, 1.852157e+02]
-        # for seq in ['00', '03', '05', '06', '07', '08', '09']:
+        self.sequence_list = ['00' ]
         for seq in self.sequence_list:
             odom = odometry(self.root_dir, seq)
             calib = odom.calib
             T_cam02_velo_np = calib.T_cam2_velo #gt pose from cam02 to velo_lidar (T_cam02_velo: 4x4)
             self.K[seq] = calib.K_cam2 # 3x3
-            # T_cam02_velo = torch.from_numpy(T_cam02_velo_np)
-            # GT_R = quaternion_from_matrix(T_cam02_velo[:3, :3])
-            # GT_T = T_cam02_velo[3:, :3]
-            # self.GTs_R[seq] = GT_R # GT_R = np.array([row['qw'], row['qx'], row['qy'], row['qz']])
-            # self.GTs_T[seq] = GT_T # GT_T = np.array([row['x'], row['y'], row['z']])
             self.GTs_T_cam02_velo[seq] = T_cam02_velo_np #gt pose from cam02 to velo_lidar (T_cam02_velo: 4x4)
 
             image_list = os.listdir(os.path.join(dataset_dir, 'sequences', seq, 'image_2'))

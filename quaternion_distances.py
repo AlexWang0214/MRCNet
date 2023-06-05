@@ -6,8 +6,8 @@
 # http://creativecommons.org/licenses/by-nc-sa/4.0/
 # -------------------------------------------------------------------
 
-# Modified Author: Xudong Lv
-# based on github.com/cattaneod/CMRNet/blob/master/quaternion_distances.py
+# Modified Author: Hao Wang
+# based on https://github.com/LvXudong-HIT/LCCNet/quaternion.py
 
 import numpy as np
 import torch

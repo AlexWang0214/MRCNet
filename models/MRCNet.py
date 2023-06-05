@@ -14,7 +14,6 @@ import numpy as np
 from torch.autograd import Variable
 import torchvision.models as models
 import torch.utils.model_zoo as model_zoo
-#from models.CMRNet.modules.attention import *
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -28,15 +27,9 @@ from PIL import Image
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
 
-# from .networks.submodules import *
-# from .networks.correlation_package.correlation import Correlation
-#from models.correlation_package.correlation import Correlation
 from spatial_correlation_sampler import SpatialCorrelationSampler
 
 
-# __all__ = [
-#     'calib_net'
-# ]
 
 
 class BasicBlock(nn.Module):
