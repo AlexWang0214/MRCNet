@@ -73,8 +73,8 @@ class CombinedLoss(nn.Module):
             Quanzhong=torch.cat(([Quanzhong1,Quanzhong2]),dim=0)
             Quanzhong=torch.reshape(Quanzhong,(2,-1))
             Quanzhong = Quanzhong.norm(dim=0)
-            Quanzhong= F.normalize(Quanzhong.float(),p=1,dim=0,eps=5)
             Quanzhong=1/Quanzhong
+            Quanzhong= F.normalize(Quanzhong.float(),p=1,dim=0,eps=5)
             R_predicted = quat2mat(rot_err[i])
             T_predicted = tvector2mat(transl_err[i])
             RT_predicted = torch.mm(T_predicted, R_predicted)
@@ -103,7 +103,7 @@ class CombinedLoss(nn.Module):
         #end = time.time()
         #print("3D Distance Time: ", end-start)
         if(h!=0):
-            total_loss =  10*(1 - self.weight_point_cloud) * pose_loss+self.weight_point_cloud * (0.00001*optical_distance_loss/h)
+            total_loss =  (1 - self.weight_point_cloud) * pose_loss+self.weight_point_cloud * (optical_distance_loss/h)
         self.loss['total_loss'] = total_loss
         self.loss['transl_loss'] = loss_transl
         self.loss['rot_loss'] = loss_rot
