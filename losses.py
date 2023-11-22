@@ -59,7 +59,11 @@ class CombinedLoss(nn.Module):
             X1=torch.Tensor(X1)
             X1=X1.cuda()
             point_cloud_gt = point_clouds[i].to(transl_err.device)
-            RTCB = torch.mm(X1, point_cloud_gt)
+            R_target = quat2mat(target_rot[i])
+            T_target = tvector2mat(target_transl[i])
+            RT_target = torch.mm(T_target, R_target)
+            RTCA = torch.mm(X1, RT_target)
+            RTCB = torch.mm(RTCA, point_cloud_gt)
             temptensor=RTCB[2:3]
             RTCC=RTCB/temptensor
             RTCC.F=RTCC[0]
@@ -71,20 +75,12 @@ class CombinedLoss(nn.Module):
             Quanzhong = Quanzhong.norm(dim=0)
             Quanzhong=1/Quanzhong
             Quanzhong= F.normalize(Quanzhong.float(),p=1,dim=0,eps=5)
-            R_target = quat2mat(target_rot[i])
-            T_target = tvector2mat(target_transl[i])
-            RT_target = torch.mm(T_target, R_target)
-
+            
             R_predicted = quat2mat(rot_err[i])
             T_predicted = tvector2mat(transl_err[i])
             RT_predicted = torch.mm(T_predicted, R_predicted)
-
-            RT_total = torch.mm(RT_target.inverse(), RT_predicted)
-
-            point_cloud_out = rotate_forward(point_cloud_gt, RT_total)
-            point_cloud_out = point_cloud_out.to(transl_err.device)
-
-            RTCB1 = torch.mm(X1, point_cloud_out)
+            RTCA1 = torch.mm(X1, RT_predicted)
+            RTCB1 = torch.mm(RTCA1, point_cloud_gt)
             temptensor1=RTCB1[2:3]
             RTCC1=RTCB1/temptensor1
             RTCC1.F=RTCC1[0]
@@ -93,10 +89,10 @@ class CombinedLoss(nn.Module):
             RTCC.F=torch.where(RTCC.F>0,RTCC.F, RTCC1.F)
             RTCC1.F=torch.where(RTCC1.F>0,RTCC1.F, RTCC.F)
             RTCC1.F=torch.where(RTCC1.F<1280,RTCC1.F, RTCC.F)
-            RTCC.S=torch.where(RTCC.S<376,RTCC.S, RTCC1.S)
+            RTCC.S=torch.where(RTCC.S<720,RTCC.S, RTCC1.S)
             RTCC.S=torch.where(RTCC.S>0,RTCC.S, RTCC1.S)
             RTCC1.S=torch.where(RTCC1.S>0,RTCC1.S, RTCC.S)
-            RTCC1.S=torch.where(RTCC1.S<376,RTCC1.S, RTCC.S)
+            RTCC1.S=torch.where(RTCC1.S<720,RTCC1.S, RTCC.S)
             RTCCF=torch.cat((RTCC.F,RTCC.S),dim=0)
             RTCC1F=torch.cat((RTCC1.F,RTCC1.S),dim=0)
             RTCCF=torch.reshape(RTCCF,(2,-1))
